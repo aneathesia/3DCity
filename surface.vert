@@ -12,6 +12,7 @@ uniform mat4 proj_Matrix;
 //uniform mat4 view_Matrix;
 //uniform mat4 model_Matrix;
 uniform mat4 mv_Matrix;
+uniform vec4 color;
 
 void main()
 {
@@ -27,9 +28,9 @@ void main()
      }
     else    TexCoord=attrib_position.yz/20;
 
-    Color=vec4(1.0f,1.0f,1.0f,1.0f);
+    Color=color;
     gl_Position=proj_Matrix*mv_Matrix*vec4(attrib_position,1.0);
-    mPosition=vec4(attrib_position,1.0); //mv_Matrix
+    //mPosition=vec4(attrib_position,1.0); //mv_Matrix
     //Normal=normalize(NormalMatrix*attrib_normal);
     Normal=attrib_normal;
 }

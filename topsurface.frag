@@ -32,7 +32,7 @@ void main()
 
     vec4 tex=texture2D(ourTexture,TexCoord.st)*Color;
 
-    FragColor=vec4(rgb,Color.a);
+    FragColor=vec4(rgb*tex.rgb,Color.a);
     //FragColor=tex;
 
 }

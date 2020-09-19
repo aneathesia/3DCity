@@ -24,10 +24,15 @@ public:
     void caculateNormal();
     void caculateTexcoord();
     void GenerateData();//control the data pattern
+    void Normalrevise();
     QOpenGLBuffer *vbo;
     QOpenGLVertexArrayObject *vao;
     QOpenGLBuffer *topvbo;
     QOpenGLVertexArrayObject *topvao;
+    QOpenGLShaderProgram *build_shader;
+    QOpenGLShaderProgram *top_shader;
+    void init();
+    void draw();
     float px_max=0,px_min=600000,py_max=0,py_min=500000,pz_max=0,pz_min=100;
     bool select=false;
 private:

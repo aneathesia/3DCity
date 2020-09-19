@@ -18,16 +18,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     camera.cpp \
     city.cpp \
+    ground.cpp \
     house.cpp \
     main.cpp \
     mainwindow.cpp \
+    searchdialog.cpp \
     vertex.cpp
 
 HEADERS += \
     camera.h \
     city.h \
+    ground.h \
     house.h \
     mainwindow.h \
+    searchdialog.h \
     vertex.h
 
 win32: LIBS += -lOpenGL32
@@ -35,7 +39,8 @@ win32: LIBS += -lOpenGL32
 win32: LIBS += -lGlU32
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    searchdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -44,6 +49,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 DISTFILES += \
+    ground.frag \
+    ground.vert \
+    quads.frag \
+    quads.vert \
     surface.frag \
     surface.vert \
     topsurface.frag \
