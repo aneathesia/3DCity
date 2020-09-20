@@ -1,0 +1,45 @@
+//   About the transform from the screen coordinate to the world coordinate;
+//   in order to find the border and make the first scene can be filled to the ground correctly
+// CSDN method gluUnProject() find the function can't return the correct matrix about the modelview and projection 
+        GLint    upviewport[4]={0,0,800,600};
+        GLdouble modelview[16];
+
+        GLdouble projection[16];
+//        glGetIntegerv(GL_VIEWPORT, upviewport);
+//        glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+//        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+//        for(int i=0;i<16;i++){
+//            qDebug()<<projection[i];
+//        }
+        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                modelview[4*i+j]=lightViewMatrix.row(i)[j];
+            }
+        }
+        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                qDebug()<<modelview[4*i+j];
+            }
+        }
+        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                projection[4*i+j]=lightProjectionMatrix.row(i)[j];
+            }
+        }
+        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                qDebug()<<projection[4*i+j];
+            }
+        }
+        GLfloat  winX, winY, winZ;
+        GLdouble posX, posY, posZ;
+//        winX = m_lastPos.x();
+//        winY = this->height()-m_lastPos.y();
+        winX=0;
+        winY=this->height()-0;
+        glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+        gluUnProject(winX, winY, winZ, modelview, projection, upviewport, &posX, &posY, &posZ);
+        qDebug()<<"position:"<<posX<<","<<posY<<","<<posZ;
+
+
+
