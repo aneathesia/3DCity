@@ -49,6 +49,7 @@ private:
     QMatrix3x3 NormalMatrix;
     QMatrix4x4 lightProjectionMatrix;
     QMatrix4x4 lightViewMatrix;
+    QMatrix4x4 OrthoMatrix;
     QVector<house> building;
     QOpenGLShaderProgram *ground_shader;
     QOpenGLShaderProgram *quads_shader;

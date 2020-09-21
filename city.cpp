@@ -135,8 +135,9 @@ city::city(QWidget *parent) : QOpenGLWidget(parent)
 
     //groundVertices
     //range：539071   538187   377975   377537   61.72   27.58
-    m_ground=new ground(QVector3D(538000,378200,27.58),QVector3D(540000,378200,27.58),QVector3D(540000,376700,27.58),QVector3D(538000,376700,27.58));
-//    m_ground=new ground();
+    m_ground=new ground(QVector3D(538097,378105,27.58),QVector3D(539900,378105,27.58),QVector3D(539900,376752,27.58),QVector3D(538097,376752,27.58));
+
+    //    m_ground=new ground();
 //    m_ground->pos.push_back(QVector3D(538000,378200,27.58));
 //    m_ground->pos.push_back(QVector3D(539200,378200,27.58));
 //    m_ground->pos.push_back(QVector3D(539200,377300,27.58));
@@ -144,7 +145,7 @@ city::city(QWidget *parent) : QOpenGLWidget(parent)
 
     m_ground->generatedata();
     m_camera=new Camera();
-    m_camera->Camera_pos=QVector3D(538800,377450,1200);
+    m_camera->Camera_pos=QVector3D(539000,377430,1200);
     m_camera->Camera_front=QVector3D(0,0,-1);
     m_camera->Camera_up=QVector3D(0,1,0);
     m_camera->Camera_right=QVector3D::crossProduct(m_camera->Camera_front,m_camera->Camera_up);
@@ -280,14 +281,15 @@ void city::paintGL()
     pMatrix.setToIdentity();
     pMatrix.perspective(m_camera->Zoom,GLfloat(this->width())/this->height(),100.0f,3000.0f);
     lightViewMatrix.setToIdentity();
-    lightViewMatrix.lookAt(QVector3D(539000,377450,1200),QVector3D(539000,377450,1200)+QVector3D(0,0,-1),QVector3D(0,1,0));
-    //OrthoMatrix.ortho(m_ground->pos[0],m_ground->pos[1],m_ground->pos[2],m_ground->pos[3],100.0f,10000.0f);
+    lightViewMatrix.lookAt(QVector3D(539000,377430,1200),QVector3D(539000,377430,1200)+QVector3D(0,0,-1),QVector3D(0,1,0));
+    OrthoMatrix.setToIdentity();
+    OrthoMatrix.ortho(538000,540000,378200,376700,0.0f,100.0f);
     lightProjectionMatrix.setToIdentity();
-    lightProjectionMatrix.perspective(62,GLfloat(this->width())/(this->height()),100.0f,3000.0f);
-    qDebug()<<"lightViewMatrix"<<lightViewMatrix<<"lightProjectionMatrix"<<lightProjectionMatrix<<this->width()<<this->height();
+    lightProjectionMatrix.perspective(60,GLfloat(this->width())/(this->height()),100.0f,3000.0f);
+    //qDebug()<<"lightViewMatrix"<<lightViewMatrix<<"lightProjectionMatrix"<<lightProjectionMatrix<<this->width()<<this->height();
     //qDebug()<<"lookAt process"<<mvMatrix<<endl;
-    fbo=new QOpenGLFramebufferObject(this->width()*2,this->height()*2,QOpenGLFramebufferObject::Depth);
-    glViewport(0,0,this->width()*2,this->height()*2);
+    fbo=new QOpenGLFramebufferObject(2000,1500,QOpenGLFramebufferObject::Depth);
+    glViewport(0,0,2000,1500);
     fbo->bind();{
         GLdouble coords[30][5]; //house 261 vertex size >20
         for(int i=0;i<building.size()-1;i++){
@@ -403,6 +405,24 @@ void city::paintGL()
             m_ground->vao->release();
         }
         quads_shader->release();
+
+
+
+//        //position test;
+//        QVector3D testpoint=QVector3D(538192.53,377649.97,40.81);
+//        QMatrix4x4 viewport;
+//        viewport.setToIdentity();
+//        viewport.viewport(0,0,this->width(),this->height());
+
+//        qDebug()<<"result"<<lightProjectionMatrix*lightViewMatrix*QVector4D(testpoint,1.0f)<<
+//                  "lightViewMatrix * "<<lightViewMatrix*QVector4D(testpoint,1.0f)<<
+//                  "viewport * "<<viewport<<
+//                  "position"<<QVector4D(testpoint,1.0f)<< "x viewport"<<viewport*lightProjectionMatrix*lightViewMatrix*QVector4D(testpoint,1.0f);
+
+
+
+
+
     }
     fbo->release();
     glBindTexture(GL_TEXTURE_2D,fbo->texture());
@@ -418,6 +438,8 @@ void city::paintGL()
         m_ground->vao->release();
     }
     ground_shader->release();
+    fbo->~QOpenGLFramebufferObject();
+
      //paint building entity
     GLdouble coords[30][5]; //house 261 vertex size >20
     for(int i=0;i<building.size()-1;i++){
@@ -525,6 +547,49 @@ void city::paintGL()
 
     }
 
+    GLint    upviewport[4]={0,0,this->width(),this->height()};
+    GLdouble modelview[16];
+
+    GLdouble projection[16];
+//        glGetIntegerv(GL_VIEWPORT, upviewport);
+//        glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+//        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+//        for(int i=0;i<16;i++){
+//            qDebug()<<projection[i];
+//        }
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            modelview[4*i+j]=mvMatrix.column(i)[j];
+        }
+    }
+    //output the mat4x4 modelview
+//        for(int i=0;i<4;i++){
+//            for(int j=0;j<4;j++){
+//                qDebug()<<modelview[4*i+j];
+//            }
+//        }
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            projection[4*i+j]=pMatrix.column(i)[j];
+        }
+    }
+    //output the mat4x4 projection
+//        for(int i=0;i<4;i++){
+//            for(int j=0;j<4;j++){
+//                qDebug()<<projection[4*i+j];
+//            }
+//        }
+    GLfloat  winX, winY, winZ;
+    GLdouble posX, posY, posZ;
+//        winX = m_lastPos.x();
+//        winY = this->height()-m_lastPos.y();
+    winX=m_lastPos.x();
+    winY=600-m_lastPos.y();
+    glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+    gluUnProject(winX, winY, winZ, modelview, projection, upviewport, &posX, &posY, &posZ);
+    qDebug()<<"position:"<<posX<<","<<posY<<","<<posZ;
+
+
 }
 
 void city::resizeGL(int w, int h)
@@ -544,7 +609,8 @@ void city::wheelEvent(QWheelEvent *event)
 void city::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos=event->pos();
-    //qDebug()<<"mouse position"<<event->pos();
+    qDebug()<<"mouse position"<<event->pos();
+    update();
 }
 void city::mouseMoveEvent(QMouseEvent *event)
 {
