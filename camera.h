@@ -22,7 +22,7 @@ public:
     QVector3D Camera_right;
     QVector3D WorldUp;
     //Euler Angles
-    float Yaw=-90.0f;
+    float Yaw=0.0f;
     float Pitch=0.0f;
     float Roll;
     //camera options

@@ -16,6 +16,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     searchDialog *sdig;
+    QStatusBar *statusbar;
 
 
 
@@ -25,6 +26,8 @@ private slots:
 
     void on_actionsearch_triggered();
     void recieveData(QVector3D *coord);
+    void ScreenToWorld(double posx,double posy,double posz);
+    //void ScreenToWorld(double posX,double posY,double posZ);
 
 private:
     Ui::MainWindow *ui;

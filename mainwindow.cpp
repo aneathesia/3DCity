@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     connect(this,SIGNAL(Target(QVector3D *)),ui->openGLWidget,SLOT(recieveTarget(QVector3D *)));
+    connect(ui->openGLWidget,SIGNAL(sendstatusCoordination(double,double,double)),this,SLOT(ScreenToWorld(double,double,double)));
 }
 
 
@@ -40,4 +41,13 @@ void MainWindow::recieveData(QVector3D *coord)
     QVector3D *SearchTarget=coord;
     qDebug()<<"target position"<<*SearchTarget;
     emit Target(SearchTarget);
+}
+void MainWindow::ScreenToWorld(double posx,double posy,double posz)
+{
+    QString mes="  ";
+    //qDebug()<<"output coordination"<<posx<<posy<<posz;
+
+    mes=mes+"X:"+QString::number(posx)+" Y:"+QString::number(posy)+" Z:"+QString::number(posz);
+//    ui->statusbar->setSizeGripEnabled(false);
+//    ui->statusbar->showMessage(mes);
 }

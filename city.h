@@ -29,7 +29,8 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event)override;
-
+signals:
+    void sendstatusCoordination(double posX,double posY,double posZ);
 public slots:
     //keypress event
     void keyPressEvent(QKeyEvent *event) override;
@@ -37,9 +38,12 @@ public slots:
 
 
 
+
 private:
 
     int ourTextureLoc;
+    GLfloat  winX, winY, winZ;
+    GLdouble posX, posY, posZ;
     Camera *m_camera;
     ground *m_ground;
     QMatrix4x4 mMatrix;
