@@ -183,6 +183,28 @@ void city::initializeGL()
     quads_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/quads.frag");
     quads_shader->link();
     quads_shader->bind();
+    shadow_mapping_depth=new QOpenGLShaderProgram;
+    shadow_mapping_depth->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/shadow_mapping_depth.vert");
+    shadow_mapping_depth->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/shadow_mapping_depth.frag");
+    shadow_mapping_depth->link();
+    shadow_mapping_depth->bind();
+    shadow_mapping=new QOpenGLShaderProgram;
+    shadow_mapping->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/shadow_mapping.vert");
+    shadow_mapping->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/shadow_mapping.frag");
+    shadow_mapping->link();
+    shadow_mapping->bind();
+    shadow_mapping_top=new QOpenGLShaderProgram;
+    shadow_mapping_top->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/shadow_mapping_top.vert");
+    shadow_mapping_top->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/shadow_mapping_top.frag");
+    shadow_mapping_top->link();
+    shadow_mapping_top->bind();
+    shadow_mapping_ground=new QOpenGLShaderProgram;
+    shadow_mapping_ground->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/shadow_mapping_ground.vert");
+    shadow_mapping_ground->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/shadow_mapping_ground.frag");
+    shadow_mapping_ground->link();
+    shadow_mapping_ground->bind();
+
+
     //vao  vbo
     for(int i=0;i<building.size()-1;i++)
     {
@@ -263,24 +285,24 @@ void city::initializeGL()
     m_texture->setMinificationFilter(QOpenGLTexture::Linear);   //等价于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
 /*---FBO------*/
-    GLuint depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
-    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+//    GLuint depthMapFBO;
+//    glGenFramebuffers(1, &depthMapFBO);
+//    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
-    GLuint depthMap;
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//    GLuint depthMap;
+//    glGenTextures(1, &depthMap);
+//    glBindTexture(GL_TEXTURE_2D, depthMap);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+//                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+//    glDrawBuffer(GL_NONE);
+//    glReadBuffer(GL_NONE);
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void city::paintGL()
@@ -289,127 +311,203 @@ void city::paintGL()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-
     mvMatrix.setToIdentity();
     mvMatrix.lookAt(m_camera->Camera_pos,m_camera->Camera_pos+m_camera->Camera_front,m_camera->Camera_up);
     pMatrix.setToIdentity();
-    pMatrix.perspective(m_camera->Zoom,GLfloat(this->width())/this->height(),100.0f,3000.0f);
+    pMatrix.perspective(m_camera->Zoom,GLfloat(this->width()/this->height()),100.0f,3000.0f);
 
-            quads_shader->bind();
-            {
-                ground_shader->setUniformValue("proj_Matrix",pMatrix);
-                ground_shader->setUniformValue("mv_Matrix",mvMatrix);
-                m_ground->vao->bind();
-                glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
-                m_ground->vao->release();
+    QVector3D lightPosition=QVector3D(538000,376700,2000);
+    QVector3D lightTarget=QVector3D(540000,378200,0);
+    QVector3D lightDirection=(lightTarget-lightPosition).normalized();
+    QVector3D lightRight=QVector3D::crossProduct(lightDirection,QVector3D(0,0,1));
+    QVector3D lightUp=QVector3D::crossProduct(lightRight,lightDirection);
+    lightViewMatrix.setToIdentity();
+    //lightViewMatrix.lookAt(QVector3D(539000,377400,300),QVector3D(539000,377400,300)+QVector3D(1,1,1),QVector3D(0,-1,1));
+    lightViewMatrix.lookAt(lightPosition,lightPosition+lightDirection,lightUp);
+    lightProjectionMatrix.setToIdentity();
+    lightProjectionMatrix.ortho(-1000,1000,-2000,0,1500,3200); //reference camera space
+
+
+    //lightProjectionMatrix.perspective(m_camera->Zoom,this->width()/this->height(),100.0f,3000.0f);
+    QMatrix4x4 lightSpaceMatrix=lightProjectionMatrix*lightViewMatrix;
+    //qDebug()<<"pMatrix"<<pMatrix<<"lightProjectionMatrix"<<lightProjectionMatrix;
+    fbo=new QOpenGLFramebufferObject(4096,4096,QOpenGLFramebufferObject::Depth);
+    glViewport(0,0,4096,4096); //sampling density
+    fbo->bind();
+    //m_camera->Camera_pos=QVector3D(539000,376000,30);
+    shadow_mapping_depth->bind();
+    {
+        GLdouble coords[30][5];
+        for(int i=0;i<building.size()-1;i++)
+        {
+        shadow_mapping_depth->setUniformValue("lightSpaceMatrix",lightSpaceMatrix);
+        //shadow_mapping_depth->setUniformValue("model",);
+        building[i].vao->bind();
+                       //QOpenGLVertexArrayObject::Binder vaoBind(building[i].vao);
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+        glDrawArrays(GL_QUADS,0,building[i].data.length()/6);
+        building[i].vao->release();
+
+        building[i].topvao->bind();
+        building[i].top_shader->enableAttributeArray(0);  //
+        building[i].top_shader->enableAttributeArray(1);
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+        if(building[i].topdata.length()>25){
+
+        GLUtesselator *tobj=gluNewTess();
+        gluTessCallback(tobj, GLU_TESS_BEGIN,  (void (CALLBACK*)()) beginCallback);
+        gluTessCallback(tobj, GLU_TESS_END,    (void (CALLBACK*)()) endCallback);
+        gluTessCallback(tobj, GLU_TESS_VERTEX, (void (CALLBACK*)()) vertexCallback);
+        gluTessCallback(tobj, GLU_TESS_ERROR,  (void (CALLBACK*)()) errorCallback);
+
+
+
+        for(int vID=0;vID<building[i].topdata.length()/5;vID++){
+            coords[vID][0]=building[i].topdata[5*vID];
+            coords[vID][1]=building[i].topdata[5*vID+1];
+            coords[vID][2]=building[i].topdata[5*vID+2];
+            coords[vID][3]=building[i].topdata[5*vID+3];
+            coords[vID][4]=building[i].topdata[5*vID+4];
             }
-            quads_shader->release();
+            gluTessNormal(tobj,0.0,0.0,1.0);
+            gluTessBeginPolygon(tobj, &building[i].topdata[0]);                   // with NULL data
+            gluTessBeginContour(tobj);
+            for(int vID=0;vID<building[i].topdata.length()/5;vID++){
+                gluTessVertex(tobj,coords[vID],coords[vID]);
+                }
+                                     //qDebug()<<tobj<<endl;
+            gluTessEndContour(tobj);
+            gluTessEndPolygon(tobj);
+            }
+       else
+       {
+            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+            glDrawArrays(GL_QUADS,0,building[i].topdata.length()/5);
+        }
+          building[i].topvao->release();
+          }
 
-            GLdouble coords[30][5]; //house 261 vertex size >20
-             for(int i=0;i<building.size()-1;i++){
 
-                 building[i].build_shader->bind();
-                 {
-                     glActiveTexture(0);
-                     m_texture->bind();
-                     building[i].build_shader->setUniformValue("proj_Matrix",pMatrix);
-                     building[i].build_shader->setUniformValue("mv_Matrix",mvMatrix);
-                     building[i].build_shader->setUniformValue("ourTexture",0);
-                     //qDebug()<<"sourround"<<mvMatrix<<endl;
-                     building[i].build_shader->setUniformValue("lightColor",QVector3D(1,1,1));
-                     //build_shader->setUniformValue(lightDirectionLoc,QVector3D(1,1,1));
-                     building[i].build_shader->setUniformValue("lightDirection",QVector3D(1.0,1.0,1.0));
-                     building[i].build_shader->setUniformValue("HalfVector",QVector3D(1,1,1)+m_camera->Camera_front);
-                     if(i==selected)
-                     {
-                         building[i].build_shader->setUniformValue("lightColor",QVector3D(0.0,0.0,1.0));
-                     }
-                     else building[i].build_shader->setUniformValue("lightColor",QVector3D(1.0,1.0,1.0));
-                     building[i].build_shader->setUniformValue("color",QVector4D(1.0,1.0,1.0,1.0));
-                     //build_shader->setUniformValue(NormalMatrixLoc,mvMatrix.normalMatrix());
-                     //build_shader->setUniformValue(lightPositionLoc,QVector3D(540000,380000,1000));
-                     //build_shader->setUniformValue(EyeDirectionLoc,m_camera->Camera_front);
-                     building[i].vao->bind();
-                     //QOpenGLVertexArrayObject::Binder vaoBind(building[i].vao);
-                     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-                     glDrawArrays(GL_QUADS,0,building[i].data.length()/6);
-                     building[i].vao->release();
+        m_ground->vao->bind();
+        glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
+        m_ground->vao->release();
+    }
+   fbo->release();
 
-                     m_texture->release();
+    glViewport(0,0,this->width(),this->height());
+    glActiveTexture(GL_TEXTURE0);
+    m_texture->bind();
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D,fbo->texture());
+   // qDebug()<<fbo->texture();
+//            ground_shader->bind();
+//            {
+//                ground_shader->setUniformValue("proj_Matrix",pMatrix);
+//                ground_shader->setUniformValue("mv_Matrix",mvMatrix);
+//                ground_shader->setUniformValue("shadow2D",0);
+//                m_ground->vao->bind();
+//                glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
+//                m_ground->vao->release();
+//            }
+//            ground_shader->release();
+
+    shadow_mapping->bind();
+     {
+         shadow_mapping->setUniformValue("proj_Matrix",pMatrix);
+         shadow_mapping->setUniformValue("mv_Matrix",mvMatrix);
+         shadow_mapping->setUniformValue("lightSpaceMatrix",lightSpaceMatrix);
+         shadow_mapping->setUniformValue("lightPos",lightPosition);
+         shadow_mapping->setUniformValue("viewPos",m_camera->Camera_pos);
+         shadow_mapping->setUniformValue("diffuseTexture",0);
+         shadow_mapping->setUniformValue("shadowMap",1);
+         //surround
+         for(int i=0;i<building.size()-1;i++)
+         {
+             building[i].vao->bind();
+              //QOpenGLVertexArrayObject::Binder vaoBind(building[i].vao);
+              //glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+              glDrawArrays(GL_QUADS,0,building[i].data.length()/6);
+              building[i].vao->release();
+         }
+
+ //        //ground
+ //             m_ground->vao->bind();
+ //             glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
+ //             m_ground->vao->release();
+
+
+     }
+
+     shadow_mapping_top->bind();
+     {
+         shadow_mapping_top->setUniformValue("proj_Matrix",pMatrix);
+         shadow_mapping_top->setUniformValue("mv_Matrix",mvMatrix);
+         shadow_mapping_top->setUniformValue("lightSpaceMatrix",lightSpaceMatrix);
+         shadow_mapping_top->setUniformValue("lightPos",lightPosition);
+         shadow_mapping_top->setUniformValue("viewPos",m_camera->Camera_pos);
+         shadow_mapping_top->setUniformValue("diffuseTexture",0);
+         shadow_mapping_top->setUniformValue("shadowMap",1);
+         GLdouble coords[30][5];
+         for(int i=0;i<building.size()-1;i++){
+         building[i].topvao->bind();
+          building[i].top_shader->enableAttributeArray(0);  //
+          building[i].top_shader->enableAttributeArray(1);
+          glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+          if(building[i].topdata.length()>25){
+
+              GLUtesselator *tobj=gluNewTess();
+              gluTessCallback(tobj, GLU_TESS_BEGIN,  (void (CALLBACK*)()) beginCallback);
+              gluTessCallback(tobj, GLU_TESS_END,    (void (CALLBACK*)()) endCallback);
+              gluTessCallback(tobj, GLU_TESS_VERTEX, (void (CALLBACK*)()) vertexCallback);
+              gluTessCallback(tobj, GLU_TESS_ERROR,  (void (CALLBACK*)()) errorCallback);
+
+
+
+              for(int vID=0;vID<building[i].topdata.length()/5;vID++){
+                      coords[vID][0]=building[i].topdata[5*vID];
+                      coords[vID][1]=building[i].topdata[5*vID+1];
+                      coords[vID][2]=building[i].topdata[5*vID+2];
+                      coords[vID][3]=building[i].topdata[5*vID+3];
+                      coords[vID][4]=building[i].topdata[5*vID+4];
                  }
-                 building[i].build_shader->release();
-
-                 building[i].top_shader->bind();
-                 {
-                      m_texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);// 等于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                      m_texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                      // set texture filtering parameters
-                      m_texture->setMinificationFilter(QOpenGLTexture::Linear);   //等价于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                      m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
-                      m_texture->generateMipMaps();
-                     glActiveTexture(0);
-                     m_texture->bind();
-                     int topmvMatrixLoc=building[i].top_shader->uniformLocation("mv_Matrix");
-                     int toppMatrixLoc=building[i].top_shader->uniformLocation("proj_Matrix");
-                     //int toplightColorLoc=top_shader->uniformLocation("lightColor");
-                     int toplightDirectionLoc=building[i].top_shader->uniformLocation("lightDirection");
-                     int topHalfVectorLoc=building[i].top_shader->uniformLocation("HalfVector");
-                     building[i].top_shader->setUniformValue(toppMatrixLoc,pMatrix);
-                     building[i].top_shader->setUniformValue(topmvMatrixLoc,mvMatrix);
-                     //qDebug()<<"topsurface"<<mvMatrix<<endl;
-                     building[i].top_shader->setUniformValue(toplightDirectionLoc,QVector3D(1,1,1));
-                     if(i==selected)
-                     {
-                         building[i].top_shader->setUniformValue("lightColor",QVector3D(0.0,0.0,1.0));
+              gluTessNormal(tobj,0.0,0.0,1.0);
+              gluTessBeginPolygon(tobj, &building[i].topdata[0]);                   // with NULL data
+                  gluTessBeginContour(tobj);
+                  for(int vID=0;vID<building[i].topdata.length()/5;vID++){
+                      gluTessVertex(tobj,coords[vID],coords[vID]);
                      }
-                     else building[i].top_shader->setUniformValue("lightColor",QVector3D(1.0,1.0,1.0));
-                     building[i].top_shader->setUniformValue(topHalfVectorLoc,QVector3D(1,1,1)+m_camera->Camera_front);
-                     building[i].top_shader->setUniformValue("ourTexture",0);
-                     building[i].top_shader->setUniformValue("NormalMatrix",mvMatrix.normalMatrix());
-                     //QOpenGLFunctions_4_2_Core::glUseProgram(top_shader->programId());
-
-                     building[i].topvao->bind();
-                     building[i].top_shader->enableAttributeArray(0);  //
-                     building[i].top_shader->enableAttributeArray(1);
-                     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-                     if(building[i].topdata.length()>25){
-
-                         GLUtesselator *tobj=gluNewTess();
-                         gluTessCallback(tobj, GLU_TESS_BEGIN,  (void (CALLBACK*)()) beginCallback);
-                         gluTessCallback(tobj, GLU_TESS_END,    (void (CALLBACK*)()) endCallback);
-                         gluTessCallback(tobj, GLU_TESS_VERTEX, (void (CALLBACK*)()) vertexCallback);
-                         gluTessCallback(tobj, GLU_TESS_ERROR,  (void (CALLBACK*)()) errorCallback);
+                  //qDebug()<<tobj<<endl;
+                  gluTessEndContour(tobj);
+               gluTessEndPolygon(tobj);
+          }
+          else
+          {
+              glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+              glDrawArrays(GL_QUADS,0,building[i].topdata.length()/5);
+          }
+          building[i].topvao->release();
+         }
 
 
+     }
 
-                         for(int vID=0;vID<building[i].topdata.length()/5;vID++){
-                                 coords[vID][0]=building[i].topdata[5*vID];
-                                 coords[vID][1]=building[i].topdata[5*vID+1];
-                                 coords[vID][2]=building[i].topdata[5*vID+2];
-                                 coords[vID][3]=building[i].topdata[5*vID+3];
-                                 coords[vID][4]=building[i].topdata[5*vID+4];
-                            }
-                         gluTessNormal(tobj,0.0,0.0,1.0);
-                         gluTessBeginPolygon(tobj, &building[i].topdata[0]);                   // with NULL data
-                             gluTessBeginContour(tobj);
-                             for(int vID=0;vID<building[i].topdata.length()/5;vID++){
-                                 gluTessVertex(tobj,coords[vID],coords[vID]);
-                                }
-                             //qDebug()<<tobj<<endl;
-                             gluTessEndContour(tobj);
-                          gluTessEndPolygon(tobj);
-                     }
-                     else
-                     {
-                         glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-                         glDrawArrays(GL_QUADS,0,building[i].topdata.length()/5);
-                     }
-                     building[i].topvao->release();
-                     m_texture->release();
-                 }
-                 building[i].top_shader->release();
 
-             }
+     shadow_mapping_ground->bind();
+     {
+         shadow_mapping_ground->setUniformValue("proj_Matrix",pMatrix);
+         shadow_mapping_ground->setUniformValue("mv_Matrix",mvMatrix);
+         shadow_mapping_ground->setUniformValue("lightSpaceMatrix",lightSpaceMatrix);
+         shadow_mapping_ground->setUniformValue("lightPos",lightPosition);
+         shadow_mapping_ground->setUniformValue("viewPos",m_camera->Camera_pos);
+         shadow_mapping_ground->setUniformValue("diffuseTexture",0);
+         shadow_mapping_ground->setUniformValue("shadowMap",1);
+
+         //ground
+         m_ground->vao->bind();
+
+         glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
+         m_ground->vao->release();
+     }
 
 
 
@@ -454,12 +552,13 @@ void city::paintGL()
     //qDebug()<<"position:"<<posX<<","<<posY<<","<<posZ;
 
     emit sendstatusCoordination(posX,posY,posZ);
+    fbo->~QOpenGLFramebufferObject();
 }
 
 void city::resizeGL(int w, int h)
 {
     glViewport(0,0,w,h);
-    pMatrix.perspective(m_camera->Zoom,GLfloat(w)/h,100.0f,10000.0f);
+    pMatrix.perspective(m_camera->Zoom,GLfloat(w)/h,100.0f,3000.0f);
 }
 //wheel event
 void city::wheelEvent(QWheelEvent *event)
@@ -518,8 +617,8 @@ void city::mouseMoveEvent(QMouseEvent *event)
         //m_camera->Camera_right=QVector3D::crossProduct(m_camera->Camera_rights,m_camera->Camera_front).normalized();
 
     }
-   qDebug()<<"camera front"<<m_camera->Camera_front<<"camera_up"<<m_camera->Camera_up<<"pitch"<<m_camera->Pitch<<
-             "yaw"<<m_camera->Yaw;
+   //qDebug()<<"camera front"<<m_camera->Camera_front<<"camera_up"<<m_camera->Camera_up<<"pitch"<<m_camera->Pitch<<
+             //"yaw"<<m_camera->Yaw;
 
     m_lastPos=event->pos();
 

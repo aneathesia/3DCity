@@ -13,7 +13,7 @@ out vec4 FragColor;
 void main()
 {
     float ambientStrength=0.5;
-    float Shininess=20.0f;
+    float Shininess=0.5f;
     float Strength=0.5f;
 
     vec3 ambient = ambientStrength*lightColor;

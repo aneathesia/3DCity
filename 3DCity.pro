@@ -53,6 +53,14 @@ DISTFILES += \
     ground.vert \
     quads.frag \
     quads.vert \
+    shadow_mapping.frag \
+    shadow_mapping.vert \
+    shadow_mapping_depth.frag \
+    shadow_mapping_depth.vert \
+    shadow_mapping_ground.frag \
+    shadow_mapping_ground.vert \
+    shadow_mapping_top.frag \
+    shadow_mapping_top.vert \
     surface.frag \
     surface.vert \
     topsurface.frag \

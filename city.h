@@ -57,6 +57,10 @@ private:
     QVector<house> building;
     QOpenGLShaderProgram *ground_shader;
     QOpenGLShaderProgram *quads_shader;
+    QOpenGLShaderProgram *shadow_mapping_depth;
+    QOpenGLShaderProgram *shadow_mapping;
+    QOpenGLShaderProgram *shadow_mapping_top;
+    QOpenGLShaderProgram *shadow_mapping_ground;
     QOpenGLTexture *m_texture;
     QOpenGLFramebufferObject *fbo;
     //mouse relate
