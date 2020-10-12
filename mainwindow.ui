@@ -21,7 +21,7 @@
        <bool>true</bool>
       </property>
       <property name="mouseTracking">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -53,9 +53,16 @@
     </property>
     <addaction name="actionsearch"/>
    </widget>
+   <widget class="QMenu" name="menufly">
+    <property name="title">
+     <string>fly</string>
+    </property>
+    <addaction name="actionroutine"/>
+   </widget>
    <addaction name="menuOpen"/>
    <addaction name="menuScale"/>
    <addaction name="menuSearch"/>
+   <addaction name="menufly"/>
   </widget>
   <action name="actionOpen_File">
    <property name="text">
@@ -63,8 +70,16 @@
    </property>
   </action>
   <action name="actionsearch">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>search</string>
+   </property>
+  </action>
+  <action name="actionroutine">
+   <property name="text">
+    <string>routine</string>
    </property>
   </action>
  </widget>
@@ -72,7 +87,7 @@
   <customwidget>
    <class>city</class>
    <extends>QOpenGLWidget</extends>
-   <header location="global">city.h</header>
+   <header>city.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

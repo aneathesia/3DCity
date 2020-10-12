@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 #include <QMainWindow>
 #include "searchdialog.h"
+#include "flycontrol.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,19 +16,22 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    searchDialog *sdig;
-    QStatusBar *statusbar;
+    //searchDialog *sdig=NULL;
+    //bool sdigCreated=false;
 
 
 
 signals:
     void Target(QVector3D *tar);
+    void add_RoutinePoint(double posx, double posy,double posz);
 private slots:
 
     void on_actionsearch_triggered();
     void recieveData(QVector3D *coord);
     void ScreenToWorld(double posx,double posy,double posz);
     //void ScreenToWorld(double posX,double posY,double posZ);
+
+    void on_actionroutine_triggered();
 
 private:
     Ui::MainWindow *ui;

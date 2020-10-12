@@ -1,6 +1,7 @@
 #include "city.h"
 #include <QOpenGLWidget>
 #include <QWidget>
+#include <QtWidgets/QToolTip>
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <QOpenGLShaderProgram>
@@ -137,6 +138,7 @@ city::city(QWidget *parent) : QOpenGLWidget(parent)
     //groundVertices
     //range：539071   538187   377975   377537   61.72   27.58
     m_ground=new ground(QVector3D(538097,378105,27.58),QVector3D(539900,378105,27.58),QVector3D(539900,376752,27.58),QVector3D(538097,376752,27.58));
+    m_ground=new ground(QVector3D(538000,378100,27.58),QVector3D(539900,378100,27.58),QVector3D(539900,376752,27.58),QVector3D(538000,376752,27.58));
 
     //    m_ground=new ground();
 //    m_ground->pos.push_back(QVector3D(538000,378200,27.58));
@@ -311,6 +313,8 @@ void city::paintGL()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
+    //fly transmit to city widget
+
     mvMatrix.setToIdentity();
     mvMatrix.lookAt(m_camera->Camera_pos,m_camera->Camera_pos+m_camera->Camera_front,m_camera->Camera_up);
     pMatrix.setToIdentity();
@@ -429,14 +433,8 @@ void city::paintGL()
               glDrawArrays(GL_QUADS,0,building[i].data.length()/6);
               building[i].vao->release();
          }
-
- //        //ground
- //             m_ground->vao->bind();
- //             glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
- //             m_ground->vao->release();
-
-
      }
+
 
      shadow_mapping_top->bind();
      {
@@ -487,11 +485,9 @@ void city::paintGL()
           }
           building[i].topvao->release();
          }
-
-
      }
 
-
+   // glCullFace(GL_FRONT);
      shadow_mapping_ground->bind();
      {
          shadow_mapping_ground->setUniformValue("proj_Matrix",pMatrix);
@@ -508,10 +504,11 @@ void city::paintGL()
          glDrawArrays(GL_QUADS,0,m_ground->data.length()/3);
          m_ground->vao->release();
      }
+ //    glCullFace(GL_BACK);
 
 
 
-    GLint    upviewport[4]={0,0,city::width(),city::height()};
+    GLint    upviewport[4]={0,0,this->width(),this->height()};
     GLdouble modelview[16];
 
     GLdouble projection[16];
@@ -550,9 +547,8 @@ void city::paintGL()
     glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
     gluUnProject(winX, winY, winZ, modelview, projection, upviewport, &posX, &posY, &posZ);
     //qDebug()<<"position:"<<posX<<","<<posY<<","<<posZ;
-
-    emit sendstatusCoordination(posX,posY,posZ);
     fbo->~QOpenGLFramebufferObject();
+    glFlush();
 }
 
 void city::resizeGL(int w, int h)
@@ -573,6 +569,14 @@ void city::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos=event->pos();
     //qDebug()<<"mouse position"<<event->pos();
+    //emit pos_building();
+    QVector3D coord=QVector3D(posX,posY,posZ);
+
+    if(building_Search(&coord)!=-1){
+        QToolTip::showText(event->globalPos(),QString::number(building_Search(&coord)));
+    }
+    emit sendstatusCoordination(posX,posY,posZ);
+
     update();
 }
 void city::mouseMoveEvent(QMouseEvent *event)
@@ -580,7 +584,7 @@ void city::mouseMoveEvent(QMouseEvent *event)
 
     float dx=event->x()-m_lastPos.x();
     float dy=event->y()-m_lastPos.y();
-    //qDebug()<<"mouse MOVE event"<<endl;
+    //qDebug()<<"mouse MOVE event"<<event->x()<<event->y()<<endl;
     if(event->buttons()&Qt::LeftButton){
         m_camera->Camera_pos+=m_camera->Camera_up*dy*5;
         m_camera->Camera_pos-=m_camera->Camera_right*dx*5;
@@ -591,10 +595,10 @@ void city::mouseMoveEvent(QMouseEvent *event)
         QVector3D front;
         m_camera->Pitch=m_camera->Pitch+dy*0.5;
         m_camera->Yaw=m_camera->Yaw+dx*0.5;
-        if(m_camera->Pitch > 89.0f)
-          m_camera->Pitch =  89.0f;
-        if(m_camera->Pitch < -89.0f)
-          m_camera->Pitch = -89.0f;
+        if(m_camera->Pitch > 89.9f)
+          m_camera->Pitch =  89.9f;
+        if(m_camera->Pitch < -89.9f)
+          m_camera->Pitch = -89.9f;
 //        front.setX(cos(m_camera->Yaw*PI/180)*cos(m_camera->Pitch*PI/180));
 //        front.setY(sin(m_camera->Pitch*PI/180));
 //        front.setZ(sin(m_camera->Yaw*PI/180)*cos(m_camera->Pitch*PI/180));
@@ -622,6 +626,7 @@ void city::mouseMoveEvent(QMouseEvent *event)
 
     m_lastPos=event->pos();
 
+    //emit sendstatusCoordination(posX,posY,posZ);// emit the last point position     press mouse get current point position
     update();
 
 }
@@ -679,5 +684,11 @@ int city::building_Search(QVector3D *coord)
         }
     }
     return res;
+}
+void city::recieveCamera(Camera *cam)
+{
+    m_camera=cam;
+    update();
+    //qDebug()<<m_camera->Camera_pos <<m_camera->Camera_front <<m_camera->Camera_up;
 }
 

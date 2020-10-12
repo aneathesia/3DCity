@@ -5,7 +5,9 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QStatusBar>
 #include "searchdialog.h"
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -15,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     connect(this,SIGNAL(Target(QVector3D *)),ui->openGLWidget,SLOT(recieveTarget(QVector3D *)));
     connect(ui->openGLWidget,SIGNAL(sendstatusCoordination(double,double,double)),this,SLOT(ScreenToWorld(double,double,double)));
+    //connect(ui->openGLWidget,SIGNAL(sendstatusCoordination(double,double,double),flycontrol,SLOT(add_point(double,double,double)));
 }
 
 
@@ -22,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+
 }
 
 
@@ -31,9 +35,10 @@ MainWindow::~MainWindow()
 void MainWindow::on_actionsearch_triggered()
 {
     //judge generate already?
-        sdig=new searchDialog;
+        searchDialog *sdig=new searchDialog(this);
         connect(sdig,SIGNAL(sendData(QVector3D*)),this,SLOT(recieveData(QVector3D *)));
         sdig->show();
+
 }
 
 void MainWindow::recieveData(QVector3D *coord)
@@ -48,6 +53,18 @@ void MainWindow::ScreenToWorld(double posx,double posy,double posz)
     //qDebug()<<"output coordination"<<posx<<posy<<posz;
 
     mes=mes+"X:"+QString::number(posx)+" Y:"+QString::number(posy)+" Z:"+QString::number(posz);
+    this->statusBar()->setSizeGripEnabled(false);
+    this->statusBar()->showMessage(mes,3000);
 //    ui->statusbar->setSizeGripEnabled(false);
-//    ui->statusbar->showMessage(mes);
+//    ui->statusbar->showMessage(mes,3000);
+    //mousepress add point
+    //qDebug()<<Qt::LeftButton;
+        emit add_RoutinePoint(posx,posy,posz);
+}
+
+void MainWindow::on_actionroutine_triggered()
+{
+    flycontrol  *flycon=new flycontrol(this);
+    flycon->show();
+    connect(flycon,SIGNAL(transmitCamera(Camera*)),ui->openGLWidget,SLOT(recieveCamera(Camera*)));
 }

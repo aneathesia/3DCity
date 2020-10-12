@@ -35,6 +35,7 @@ public slots:
     //keypress event
     void keyPressEvent(QKeyEvent *event) override;
     void recieveTarget(QVector3D *coord);
+    void recieveCamera(Camera *cam);
 
 
 

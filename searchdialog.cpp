@@ -13,6 +13,7 @@ searchDialog::searchDialog(QWidget *parent) :
 searchDialog::~searchDialog()
 {
     delete ui;
+
 }
 
 void searchDialog::on_Search_clicked()

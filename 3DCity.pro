@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     camera.cpp \
     city.cpp \
+    flycontrol.cpp \
     ground.cpp \
     house.cpp \
     main.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
 HEADERS += \
     camera.h \
     city.h \
+    flycontrol.h \
     ground.h \
     house.h \
     mainwindow.h \
@@ -39,6 +41,7 @@ win32: LIBS += -lOpenGL32
 win32: LIBS += -lGlU32
 
 FORMS += \
+    flycontrol.ui \
     mainwindow.ui \
     searchdialog.ui
 
