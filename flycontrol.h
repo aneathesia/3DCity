@@ -21,12 +21,16 @@ public:
     QStandardItemModel *model;
     Camera *flycam;
     float fps=60.0;
+    int msec=40;
     int PID=0;
+    int stage = 0 ;   //turn
     QTimer *timer;
+
 signals:
     void transmitCamera(Camera *cam);
 private slots:
     void updateCamera();
+    //void camera_turn(QVector3D start,QVector3D end);
     void on_FlyForward_clicked();
     void add_point(double posx,double posy,double posz);
 
@@ -36,6 +40,10 @@ private slots:
     void on_Fly_clicked();
 
     void on_FlyPause_clicked();
+
+    void on_SpeedUp_clicked();
+
+    void on_SpeedDown_clicked();
 
 private:
     Ui::flycontrol *ui;
