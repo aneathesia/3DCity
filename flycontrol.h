@@ -28,6 +28,7 @@ public:
 
 signals:
     void transmitCamera(Camera *cam);
+    void route(QVector<QVector3D> route);
 private slots:
     void updateCamera();
     //void camera_turn(QVector3D start,QVector3D end);

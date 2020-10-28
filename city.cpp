@@ -13,6 +13,7 @@
 #include <QMouseEvent>
 #include "house.h"
 #include "camera.h"
+#include "route.h"
 #define PI 3.1415926
 
 /*-------tessellation callback-------*/
@@ -137,7 +138,7 @@ city::city(QWidget *parent) : QOpenGLWidget(parent)
 
     //groundVertices
     //range：539071   538187   377975   377537   61.72   27.58
-    m_ground=new ground(QVector3D(538097,378105,27.58),QVector3D(539900,378105,27.58),QVector3D(539900,376752,27.58),QVector3D(538097,376752,27.58));
+    //m_ground=new ground(QVector3D(538097,378105,27.58),QVector3D(539900,378105,27.58),QVector3D(539900,376752,27.58),QVector3D(538097,376752,27.58));
     m_ground=new ground(QVector3D(538000,378100,27.58),QVector3D(539900,378100,27.58),QVector3D(539900,376752,27.58),QVector3D(538000,376752,27.58));
 
     //    m_ground=new ground();
@@ -152,6 +153,8 @@ city::city(QWidget *parent) : QOpenGLWidget(parent)
     m_camera->Camera_front=QVector3D(0,1,0);
     m_camera->Camera_up=QVector3D(0,0,1);
     m_camera->Camera_right=QVector3D::crossProduct(m_camera->Camera_front,m_camera->Camera_up);
+
+     m_route = new route();
 
 }
 
@@ -180,6 +183,7 @@ void city::initializeGL()
     ground_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/ground.frag");
     ground_shader->link();
     ground_shader->bind();
+
     quads_shader=new QOpenGLShaderProgram;
     quads_shader->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/quads.vert");
     quads_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/quads.frag");
@@ -207,6 +211,8 @@ void city::initializeGL()
     shadow_mapping_ground->bind();
 
 
+
+
     //vao  vbo
     for(int i=0;i<building.size()-1;i++)
     {
@@ -225,6 +231,13 @@ void city::initializeGL()
     ground_shader->enableAttributeArray(0);
     //ground_shader->enableAttributeArray(1);
     m_ground->vao->release(); m_ground->vbo->release();
+
+
+
+
+
+
+
 //    //FBO
 //    m_ground->fbo=new QOpenGLFramebufferObject(1024,1024,QOpenGLFramebufferObject::Depth);
 
@@ -506,6 +519,40 @@ void city::paintGL()
      }
  //    glCullFace(GL_BACK);
 
+     //paintRoute
+
+     m_route->generatedata();
+
+    // qDebug()<<m_route->pos;
+     m_route->route_shader = new QOpenGLShaderProgram;
+     m_route->route_shader->addShaderFromSourceFile(QOpenGLShader::Vertex,"E:/Qt/3DCity/route.vert");
+     m_route->route_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,"E:/Qt/3DCity/route.frag");
+     m_route->route_shader->link();
+     m_route->route_shader->bind();
+     //m_route
+     if(m_route->data.length()>3){
+         m_route->vao=new QOpenGLVertexArrayObject();
+         m_route->vbo=new QOpenGLBuffer();
+         m_route->vao->create();m_route->vao->bind();
+         m_route->vbo->create();m_route->vbo->bind();
+         m_route->vbo->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+         m_route->vbo->allocate(&m_route->data[0],m_route->data.length()*sizeof (float));
+         m_route->route_shader->setAttributeBuffer("attrib_position",GL_FLOAT,0,3,0);
+         m_route->route_shader->enableAttributeArray(0);
+         m_route->vao->release();m_route->vbo->release();
+
+         m_route->route_shader->bind();
+         {
+             m_route->route_shader->setUniformValue("proj_Matrix",pMatrix);
+             m_route->route_shader->setUniformValue("mv_Matrix",mvMatrix);
+
+             m_route->vao->bind();
+             glDrawArrays(GL_LINE_STRIP,0,m_route->data.length()/3);
+             m_route->vao->release();
+         }
+     }
+
+
 
 
     GLint    upviewport[4]={0,0,this->width(),this->height()};
@@ -692,3 +739,8 @@ void city::recieveCamera(Camera *cam)
     //qDebug()<<m_camera->Camera_pos <<m_camera->Camera_front <<m_camera->Camera_up;
 }
 
+void city::paintroute(QVector<QVector3D> route){
+    m_route->pos=route;
+   // qDebug()<<m_route->pos;
+    update();
+}

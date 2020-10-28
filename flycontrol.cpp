@@ -43,6 +43,7 @@ void flycontrol::add_point(double posx,double posy,double posz)
 
     {
         data.push_back(QVector3D(posx,posy,posz+5.0));
+        emit route(data);
     } //avoid flying on the floor
     //qDebug()<<data.size();
     for(int i =0 ; i<data.size();i++){
@@ -64,10 +65,11 @@ void flycontrol::on_addFlyPoint_clicked(bool checked)
         //ui->addFlyPoint->setStyleSheet("background-color:rgb(175,0,0)");
 
         connect(parent(),SIGNAL(add_RoutinePoint(double,double,double)),this,SLOT(add_point(double,double,double)));
-
+        //connect(this,SIGNAL(route(QVector<QVector3D>)),parent(),SLOT(paintroute(QVector<QVector3D>)));
     }
     else
         disconnect(parent(),SIGNAL(add_RoutinePoint(double,double,double)),this,SLOT(add_point(double,double,double)));
+        //disconnect(this,SIGNAL(route(QVector<QVector3D>)),parent(),SLOT(paintroute(QVector<QVector3D>)));
 
 }
 

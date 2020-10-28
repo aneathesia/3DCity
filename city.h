@@ -13,6 +13,7 @@
 #include "house.h"
 #include "camera.h"
 #include "ground.h"
+#include "route.h"
 
 class city : public QOpenGLWidget,protected QOpenGLFunctions_4_2_Core
 {
@@ -36,6 +37,7 @@ public slots:
     void keyPressEvent(QKeyEvent *event) override;
     void recieveTarget(QVector3D *coord);
     void recieveCamera(Camera *cam);
+    void paintroute(QVector<QVector3D> route);
 
 
 
@@ -47,6 +49,7 @@ private:
     GLdouble posX, posY, posZ;
     Camera *m_camera;
     ground *m_ground;
+    route *m_route;
     QMatrix4x4 mMatrix;
     QMatrix4x4 vMatrix;
     QMatrix4x4 pMatrix;
@@ -56,6 +59,7 @@ private:
     QMatrix4x4 lightViewMatrix;
     QMatrix4x4 OrthoMatrix;
     QVector<house> building;
+
     QOpenGLShaderProgram *ground_shader;
     QOpenGLShaderProgram *quads_shader;
     QOpenGLShaderProgram *shadow_mapping_depth;

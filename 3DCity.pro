@@ -23,6 +23,7 @@ SOURCES += \
     house.cpp \
     main.cpp \
     mainwindow.cpp \
+    route.cpp \
     searchdialog.cpp \
     vertex.cpp
 
@@ -33,6 +34,7 @@ HEADERS += \
     ground.h \
     house.h \
     mainwindow.h \
+    route.h \
     searchdialog.h \
     vertex.h
 
@@ -56,6 +58,8 @@ DISTFILES += \
     ground.vert \
     quads.frag \
     quads.vert \
+    route.frag \
+    route.vert \
     shadow_mapping.frag \
     shadow_mapping.vert \
     shadow_mapping_depth.frag \

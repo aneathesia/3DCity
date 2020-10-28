@@ -67,4 +67,6 @@ void MainWindow::on_actionroutine_triggered()
     flycontrol  *flycon=new flycontrol(this);
     flycon->show();
     connect(flycon,SIGNAL(transmitCamera(Camera*)),ui->openGLWidget,SLOT(recieveCamera(Camera*)));
+    connect(flycon,SIGNAL(route(QVector<QVector3D>)),ui->openGLWidget,SLOT(paintroute(QVector<QVector3D>)));
+
 }
